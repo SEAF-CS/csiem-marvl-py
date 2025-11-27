@@ -1,0 +1,20 @@
+{
+    "name": "databricks-python",
+    "image": "databricksruntime/python:16.4-LTS",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-toolsai.jupyter",
+				"ms-python.vscode-pylance",
+				"ms-python.python",
+				"ms-toolsai.vscode-jupyter-cell-tags",
+				"ms-toolsai.jupyter-renderers",
+				"ms-toolsai.vscode-jupyter-slideshow",
+				"ms-toolsai.jupyter-keymap"
+            ]
+        }
+    },
+    "remoteEnv": {
+        "PATH": "/databricks/python3/bin:${containerEnv:PATH}"
+    }
+}
