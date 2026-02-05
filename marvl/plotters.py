@@ -1,4 +1,5 @@
 import os
+import re
 from typing import List, Union
 
 import matplotlib.container as mcontainer
@@ -98,15 +99,13 @@ class WQFluxPlotter:
     def plot_watermark(self, fig: Figure, param_dict: dict = {}):
         file_path = self.processor.file_path
         basename = os.path.basename(file_path).split(".")[0]
-        parts = os.path.dirname(file_path).split(os.sep)
-        version_num = 'VX.X.X'
-        if "model" in parts:
-            index = parts.index("model")
-            truncated_path = os.sep.join(parts[index:])
-            for part in truncated_path.split(os.sep):
-                if part.startswith("V"):
-                    version_num = part
-        watermark = f"{version_num}_{basename}"
+        pattern = r'\bV?(\d+\.\d+\.\d+)\b'
+        match = re.search(pattern, file_path)
+        if match is None:
+            version_num = 'X.X.X'
+        else:
+            version_num = match.group(1)
+        watermark = f"V{version_num}_{basename}"
         defaults = {
             "fontsize": 9,
             "color": "gray",
