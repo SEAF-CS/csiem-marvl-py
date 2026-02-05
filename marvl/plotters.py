@@ -12,33 +12,33 @@ from marvl import processors
 
 
 class WQFluxPlotter:
-    def __init__(self, file_path: str, resample_rule: str = "W"):
+    def __init__(self, file_path: str, resample_rule: str = 'W'):
         self.processor = processors.WQFluxProcessor(file_path)
         self.registry = {
-            "resample_rules": {
-                "D": {
-                    "y_label": "Daily",
-                    "x_locator": mdates.WeekdayLocator(),
-                    "x_formatter": mdates.DateFormatter("%d-%m"),
+            'resample_rules': {
+                'D': {
+                    'y_label': 'Daily',
+                    'x_locator': mdates.WeekdayLocator(),
+                    'x_formatter': mdates.DateFormatter('%d-%m'),
                 },
-                "W": {
-                    "y_label": "Weekly",
-                    "x_locator": mdates.MonthLocator(),
-                    "x_formatter": mdates.DateFormatter("%m-%y"),
+                'W': {
+                    'y_label': 'Weekly',
+                    'x_locator': mdates.MonthLocator(),
+                    'x_formatter': mdates.DateFormatter('%m-%y'),
                 },
-                "ME": {
-                    "y_label": "Monthly",
-                    "x_locator": mdates.MonthLocator(),
-                    "x_formatter": mdates.DateFormatter("%m-%y"),
+                'ME': {
+                    'y_label': 'Monthly',
+                    'x_locator': mdates.MonthLocator(),
+                    'x_formatter': mdates.DateFormatter('%m-%y'),
                 },
             },
-            "load": {
-                "tn": {"y_label": "%FREQ% TN load (tonnes)"},
-                "no3": {"y_label": "%FREQ% NO$_3$ load (tonnes)"},
-                "nh4": {"y_label": "%FREQ% NH$_4$ load (tonnes)"},
-                "dn": {"y_label": "%FREQ% DN load (tonnes)"},
+            'load': {
+                'tn': {'y_label': '%FREQ% TN load (tonnes)'},
+                'no3': {'y_label': '%FREQ% NO$_3$ load (tonnes)'},
+                'nh4': {'y_label': '%FREQ% NH$_4$ load (tonnes)'},
+                'dn': {'y_label': '%FREQ% DN load (tonnes)'},
             },
-            "discharge": {"y_label": "%FREQ% mean flowrate (m$^3$/s)"},
+            'discharge': {'y_label': '%FREQ% mean flowrate (m$^3$/s)'},
         }
         self.resample_rule = resample_rule
 
@@ -49,8 +49,8 @@ class WQFluxPlotter:
             if k not in param_dict:
                 param_dict[k] = v
 
-    def _update_y_label(self, label: str, match: str = "%FREQ%") -> str:
-        freq = self.registry["resample_rules"][self.resample_rule]["y_label"]
+    def _update_y_label(self, label: str, match: str = '%FREQ%') -> str:
+        freq = self.registry['resample_rules'][self.resample_rule]['y_label']
         if match in label:
             label = label.replace(match, freq)
         return label
@@ -61,11 +61,11 @@ class WQFluxPlotter:
 
     @resample_rule.setter
     def resample_rule(self, resample_rule: str) -> None:
-        supported_rules = list(self.registry["resample_rules"].keys())
+        supported_rules = list(self.registry['resample_rules'].keys())
         if resample_rule not in supported_rules:
             raise ValueError(
-                f"Invalid resample_rule: {resample_rule}. "
-                f"Valid resample_rules are: {supported_rules}"
+                f'Invalid resample_rule: {resample_rule}. '
+                f'Valid resample_rules are: {supported_rules}'
             )
         self._resample_rule = resample_rule
 
@@ -75,7 +75,7 @@ class WQFluxPlotter:
             c for c in ax.containers if isinstance(c, mcontainer.BarContainer)
         ]
 
-        if existing_bars and "bottom" not in param_dict:
+        if existing_bars and 'bottom' not in param_dict:
             num_bars = len(existing_bars[0])
             positive_bottoms = np.zeros(num_bars)
             negative_bottoms = np.zeros(num_bars)
@@ -92,7 +92,7 @@ class WQFluxPlotter:
                     bottoms[i] = positive_bottoms[i]
                 else:
                     bottoms[i] = negative_bottoms[i]
-            param_dict["bottom"] = bottoms
+            param_dict['bottom'] = bottoms
 
         out = ax.bar(data.index, data.values, **param_dict)
         param_dict.clear()
@@ -100,21 +100,21 @@ class WQFluxPlotter:
 
     def plot_watermark(self, fig: Figure, param_dict: dict = {}):
         file_path = self.processor.file_path
-        basename = os.path.basename(file_path).split(".")[0]
-        pattern = r"\bV?(\d+\.\d+\.\d+)\b"
+        basename = os.path.basename(file_path).split('.')[0]
+        pattern = r'\bV?(\d+\.\d+\.\d+)\b'
         match = re.search(pattern, file_path)
         if match is None:
-            version_num = "X.X.X"
+            version_num = 'X.X.X'
         else:
             version_num = match.group(1)
-        watermark = f"V{version_num}_{basename}"
+        watermark = f'V{version_num}_{basename}'
         defaults = {
-            "fontsize": 9,
-            "color": "gray",
-            "alpha": 0.25,
-            "ha": "center",
-            "va": "center",
-            "rotation": 0,
+            'fontsize': 9,
+            'color': 'gray',
+            'alpha': 0.25,
+            'ha': 'center',
+            'va': 'center',
+            'rotation': 0,
         }
         self._set_param_dict_defaults(param_dict, defaults)
         out = fig.text(0.5, 0.075, watermark, **param_dict)
@@ -131,16 +131,16 @@ class WQFluxPlotter:
         bottom_param_dict: dict = {},
     ):
         default_top_params = {
-            "color": "red",
-            "label": top_label,
-            "zorder": 0,
-            "alpha": 0.075,
+            'color': 'red',
+            'label': top_label,
+            'zorder': 0,
+            'alpha': 0.075,
         }
         default_bottom_params = {
-            "color": "blue",
-            "label": bottom_label,
-            "zorder": 0,
-            "alpha": 0.075,
+            'color': 'blue',
+            'label': bottom_label,
+            'zorder': 0,
+            'alpha': 0.075,
         }
         self._set_param_dict_defaults(top_param_dict, default_top_params)
         self._set_param_dict_defaults(bottom_param_dict, default_bottom_params)
@@ -167,17 +167,17 @@ class WQFluxPlotter:
             load_type, nodestring_id, invert, self.resample_rule
         )
         defaults = {
-            "width": 4,
-            "alpha": 1,
-            "edgecolor": "black",
-            "linewidth": 1.0,
-            "color": "black",
-            "label": f"NS{nodestring_id}",
+            'width': 4,
+            'alpha': 1,
+            'edgecolor': 'black',
+            'linewidth': 1.0,
+            'color': 'black',
+            'label': f'NS{nodestring_id}',
         }
         self._set_param_dict_defaults(param_dict, defaults)
         out = self.plot_diverging_bar_part(ax, load, param_dict)
         self.style_axes(
-            ax, y_label=self.registry["load"][load_type]["y_label"]
+            ax, y_label=self.registry['load'][load_type]['y_label']
         )
         param_dict.clear()
         return out
@@ -194,15 +194,15 @@ class WQFluxPlotter:
             load_type, nodestring_ids, invert, self.resample_rule
         )
         defaults = {
-            "color": "mediumseagreen",
-            "linestyle": "-",
-            "linewidth": 1.5,
-            "label": "Net import",
+            'color': 'mediumseagreen',
+            'linestyle': '-',
+            'linewidth': 1.5,
+            'label': 'Net import',
         }
         self._set_param_dict_defaults(param_dict, defaults)
         out = ax.plot(load.index, load.values, **param_dict)
         self.style_axes(
-            ax, y_label=self.registry["load"][load_type]["y_label"]
+            ax, y_label=self.registry['load'][load_type]['y_label']
         )
         param_dict.clear()
         return out
@@ -213,10 +213,10 @@ class WQFluxPlotter:
         discharge = self.processor.get_discharge(
             nodestring_id, self.resample_rule
         )
-        defaults = {"color": "black", "linewidth": 1.5}
+        defaults = {'color': 'black', 'linewidth': 1.5}
         self._set_param_dict_defaults(param_dict, defaults)
         out = ax.plot(discharge.index, discharge.values, **param_dict)
-        self.style_axes(ax, y_label=self.registry["discharge"]["y_label"])
+        self.style_axes(ax, y_label=self.registry['discharge']['y_label'])
         param_dict.clear()
         return out
 
@@ -235,16 +235,16 @@ class WQFluxPlotter:
         if num_std != 0:
             mean = mean + num_std * std
             if num_std > 0:
-                label = f"Mean + {num_std}σ: {mean:.0f} m$^3$/s"
+                label = f'Mean + {num_std}σ: {mean:.0f} m$^3$/s'
             else:
-                label = f"Mean - {abs(num_std)}σ: {mean:.0f} m$^3$/s"
+                label = f'Mean - {abs(num_std)}σ: {mean:.0f} m$^3$/s'
         else:
-            label = f"Mean: {mean:.0f} m$^3$/s"
+            label = f'Mean: {mean:.0f} m$^3$/s'
         defaults = {
-            "color": "black",
-            "linestyle": "--",
-            "alpha": 0.5,
-            "label": label,
+            'color': 'black',
+            'linestyle': '--',
+            'alpha': 0.5,
+            'label': label,
         }
         self._set_param_dict_defaults(param_dict, defaults)
         out = ax.axhline(y=mean, **param_dict)
@@ -256,11 +256,11 @@ class WQFluxPlotter:
             y_label = self._update_y_label(y_label)
             ax.set_ylabel(y_label, fontsize=12)
         ax.grid(True, alpha=0.3)
-        locator = self.registry["resample_rules"][self.resample_rule][
-            "x_locator"
+        locator = self.registry['resample_rules'][self.resample_rule][
+            'x_locator'
         ]
-        formatter = self.registry["resample_rules"][self.resample_rule][
-            "x_formatter"
+        formatter = self.registry['resample_rules'][self.resample_rule][
+            'x_formatter'
         ]
         ax.xaxis.set_major_locator(locator)
         ax.xaxis.set_major_formatter(formatter)
