@@ -1,4 +1,3 @@
-
 from abc import ABC, abstractmethod
 from typing import List, Union
 
@@ -70,9 +69,14 @@ class WQFluxProcessor(BaseProcessor):
         return col_names
 
     def _validate(
-        self, nodestring_id: Union[int, None] = None, load_type: Union[str, None] = None
+        self,
+        nodestring_id: Union[int, None] = None,
+        load_type: Union[str, None] = None,
     ):
-        if nodestring_id is not None and nodestring_id not in self.get_nodestring_ids():
+        if (
+            nodestring_id is not None
+            and nodestring_id not in self.get_nodestring_ids()
+        ):
             raise ValueError(
                 f"Invalid nodestring_id: {nodestring_id}. "
                 f"Valid nodestring_ids are: {self.get_nodestring_ids()}"
@@ -125,7 +129,9 @@ class WQFluxProcessor(BaseProcessor):
         self.data.set_index("time", inplace=True)
         total_load = None
         for k, v in self.registry[load_type].items():
-            load = self.data[f"{nodestring_id}_{k}"].resample(resample_rule).sum()
+            load = (
+                self.data[f"{nodestring_id}_{k}"].resample(resample_rule).sum()
+            )
             if v["multiplier"] is not None:
                 load = load * v["multiplier"]
             if total_load is None:
@@ -145,9 +151,13 @@ class WQFluxProcessor(BaseProcessor):
         invert: Union[int, List[bool]],
         resample_rule: str = "W",
     ) -> pd.Series:
-        load_type = [load_type] if not isinstance(load_type, list) else load_type
+        load_type = (
+            [load_type] if not isinstance(load_type, list) else load_type
+        )
         nodestring_id = (
-            [nodestring_id] if not isinstance(nodestring_id, list) else nodestring_id
+            [nodestring_id]
+            if not isinstance(nodestring_id, list)
+            else nodestring_id
         )
         invert = [invert] if not isinstance(invert, list) else invert
         assert len(nodestring_id) == len(invert), (
@@ -169,7 +179,9 @@ class WQFluxProcessor(BaseProcessor):
     def get_discharge(self, nodestring_id: int, resample_rule: str = "W"):
         self._validate(nodestring_id)
         self.data.set_index("time", inplace=True)
-        discharge = self.data[f"{nodestring_id}_flow"].resample(resample_rule).mean()
+        discharge = (
+            self.data[f"{nodestring_id}_flow"].resample(resample_rule).mean()
+        )
         self.data.reset_index(inplace=True)
         return discharge
 

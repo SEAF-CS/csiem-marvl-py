@@ -42,7 +42,9 @@ class WQFluxPlotter:
         }
         self.resample_rule = resample_rule
 
-    def _set_param_dict_defaults(self, param_dict: dict, defaults_dict: dict) -> None:
+    def _set_param_dict_defaults(
+        self, param_dict: dict, defaults_dict: dict
+    ) -> None:
         for k, v in defaults_dict.items():
             if k not in param_dict:
                 param_dict[k] = v
@@ -99,10 +101,10 @@ class WQFluxPlotter:
     def plot_watermark(self, fig: Figure, param_dict: dict = {}):
         file_path = self.processor.file_path
         basename = os.path.basename(file_path).split(".")[0]
-        pattern = r'\bV?(\d+\.\d+\.\d+)\b'
+        pattern = r"\bV?(\d+\.\d+\.\d+)\b"
         match = re.search(pattern, file_path)
         if match is None:
-            version_num = 'X.X.X'
+            version_num = "X.X.X"
         else:
             version_num = match.group(1)
         watermark = f"V{version_num}_{basename}"
@@ -174,7 +176,9 @@ class WQFluxPlotter:
         }
         self._set_param_dict_defaults(param_dict, defaults)
         out = self.plot_diverging_bar_part(ax, load, param_dict)
-        self.style_axes(ax, y_label=self.registry["load"][load_type]["y_label"])
+        self.style_axes(
+            ax, y_label=self.registry["load"][load_type]["y_label"]
+        )
         param_dict.clear()
         return out
 
@@ -197,12 +201,18 @@ class WQFluxPlotter:
         }
         self._set_param_dict_defaults(param_dict, defaults)
         out = ax.plot(load.index, load.values, **param_dict)
-        self.style_axes(ax, y_label=self.registry["load"][load_type]["y_label"])
+        self.style_axes(
+            ax, y_label=self.registry["load"][load_type]["y_label"]
+        )
         param_dict.clear()
         return out
 
-    def plot_discharge(self, ax: Axes, nodestring_id: int, param_dict: dict = {}):
-        discharge = self.processor.get_discharge(nodestring_id, self.resample_rule)
+    def plot_discharge(
+        self, ax: Axes, nodestring_id: int, param_dict: dict = {}
+    ):
+        discharge = self.processor.get_discharge(
+            nodestring_id, self.resample_rule
+        )
         defaults = {"color": "black", "linewidth": 1.5}
         self._set_param_dict_defaults(param_dict, defaults)
         out = ax.plot(discharge.index, discharge.values, **param_dict)
@@ -211,9 +221,15 @@ class WQFluxPlotter:
         return out
 
     def plot_mean_discharge(
-        self, ax: Axes, nodestring_id: int, num_std: int = 0, param_dict: dict = {}
+        self,
+        ax: Axes,
+        nodestring_id: int,
+        num_std: int = 0,
+        param_dict: dict = {},
     ):
-        discharge = self.processor.get_discharge(nodestring_id, self.resample_rule)
+        discharge = self.processor.get_discharge(
+            nodestring_id, self.resample_rule
+        )
         mean = discharge.mean()
         std = discharge.std()
         if num_std != 0:
@@ -224,7 +240,12 @@ class WQFluxPlotter:
                 label = f"Mean - {abs(num_std)}σ: {mean:.0f} m$^3$/s"
         else:
             label = f"Mean: {mean:.0f} m$^3$/s"
-        defaults = {"color": "black", "linestyle": "--", "alpha": 0.5, "label": label}
+        defaults = {
+            "color": "black",
+            "linestyle": "--",
+            "alpha": 0.5,
+            "label": label,
+        }
         self._set_param_dict_defaults(param_dict, defaults)
         out = ax.axhline(y=mean, **param_dict)
         param_dict.clear()
@@ -235,7 +256,11 @@ class WQFluxPlotter:
             y_label = self._update_y_label(y_label)
             ax.set_ylabel(y_label, fontsize=12)
         ax.grid(True, alpha=0.3)
-        locator = self.registry["resample_rules"][self.resample_rule]["x_locator"]
-        formatter = self.registry["resample_rules"][self.resample_rule]["x_formatter"]
+        locator = self.registry["resample_rules"][self.resample_rule][
+            "x_locator"
+        ]
+        formatter = self.registry["resample_rules"][self.resample_rule][
+            "x_formatter"
+        ]
         ax.xaxis.set_major_locator(locator)
         ax.xaxis.set_major_formatter(formatter)
