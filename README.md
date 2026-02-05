@@ -15,10 +15,10 @@ pip install git+https://github.com/SEAF-CS/csiem-marvl-py
 The package is imported simply as `marvl` (Model Assessment, Reporting and Visualisation Library):
 
 ```python
-import marvl
+from marvl import plotters
 ```
 
 ## Development
 
 This repository uses [`uv`](https://docs.astral.sh/uv/) for package development and project management.
-To contribute to the developent, ensure you have uv [installed](https://docs.astral.sh/uv/getting-started/installation/), clone the repository, and run `uv sync`.
+To contribute to the development, ensure you have uv [installed](https://docs.astral.sh/uv/getting-started/installation/), clone the repository, and run `uv sync`.
