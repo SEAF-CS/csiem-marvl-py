@@ -37,10 +37,13 @@ class WQFluxPlotter:
                 'no3': {'y_label': '%FREQ% NO$_3$ load (tonnes)'},
                 'nh4': {'y_label': '%FREQ% NH$_4$ load (tonnes)'},
                 'dn': {'y_label': '%FREQ% DN load (tonnes)'},
+                'trc': {'y_label': '%FREQ% tracer load (tonnes)'},
+                'trc_dis': {'y_label': '%FREQ% tracer load (tonnes)'},
             },
             'discharge': {'y_label': '%FREQ% mean flowrate (m$^3$/s)'},
         }
         self.resample_rule = resample_rule
+        self._get_model_version()
 
     def _set_param_dict_defaults(
         self, param_dict: dict, defaults_dict: dict
@@ -54,6 +57,15 @@ class WQFluxPlotter:
         if match in label:
             label = label.replace(match, freq)
         return label
+
+    def _get_model_version(self):
+        file_path = self.processor.file_path
+        pattern = r'\bV?(\d+\.\d+\.\d+)\b'
+        match = re.search(pattern, file_path)
+        if match is None:
+            self.model_version = 'X.X.X'
+        else:
+            self.model_version = match.group(1)
 
     @property
     def resample_rule(self) -> str:
@@ -101,13 +113,7 @@ class WQFluxPlotter:
     def plot_watermark(self, fig: Figure, param_dict: dict = {}):
         file_path = self.processor.file_path
         basename = os.path.basename(file_path).split('.')[0]
-        pattern = r'\bV?(\d+\.\d+\.\d+)\b'
-        match = re.search(pattern, file_path)
-        if match is None:
-            version_num = 'X.X.X'
-        else:
-            version_num = match.group(1)
-        watermark = f'V{version_num}_{basename}'
+        watermark = f'V{self.model_version}_{basename}'
         defaults = {
             'fontsize': 9,
             'color': 'gray',
@@ -207,6 +213,49 @@ class WQFluxPlotter:
         param_dict.clear()
         return out
 
+    def plot_est_load(
+        self, ax: Axes, load_type: str, nodestring_id_a: int, nodestring_id_b: int, param_dict: dict = {}
+    ):
+        load = self.processor.get_est_load(
+            load_type, nodestring_id_a, nodestring_id_b, self.resample_rule
+        )
+        defaults = {
+            'width': 4,
+            'alpha': 1,
+            'edgecolor': 'black',
+            'linewidth': 1.0,
+            'color': 'black',
+            'label': f'Est. NS{nodestring_id_a}',
+        }
+        self._set_param_dict_defaults(param_dict, defaults)
+        out = self.plot_diverging_bar_part(ax, load, param_dict)
+        self.style_axes(
+            ax, y_label=self.registry['load'][load_type]['y_label']
+        )
+        param_dict.clear()
+        return out
+
+    def plot_tracer_ratio(
+        self, ax: Axes, load_type: str, nodestring_id_a: int, nodestring_id_b: int, param_dict: dict = {}
+    ):
+        trc_ratio = self.processor.get_tracer_ratio(
+            load_type, nodestring_id_a, nodestring_id_b
+        )
+        defaults = {
+            'color': 'mediumseagreen',
+            'linestyle': '--',
+            'linewidth': 1.5,
+            'label': f'NS{nodestring_id_a} ratio',
+        }
+        self._set_param_dict_defaults(param_dict, defaults)
+        out = ax.plot(trc_ratio.index, trc_ratio.values, **param_dict)
+        ax.set_ylim(0, 1)
+        ax.set_ylabel('Dilution ratio (-)')
+        param_dict.clear()
+        return out
+
+
+
     def plot_discharge(
         self, ax: Axes, nodestring_id: int, param_dict: dict = {}
     ):
@@ -264,3 +313,13 @@ class WQFluxPlotter:
         ]
         ax.xaxis.set_major_locator(locator)
         ax.xaxis.set_major_formatter(formatter)
+
+
+class NCPlotter:
+    def __init__(self, file_path: str):
+        self.processor = processors.NCProcessor(file_path)
+
+    def plot_water_level(
+        self, ax: Axes, gobin_filter: bool = False, param_dict: dict = {}
+    ):
+        pass

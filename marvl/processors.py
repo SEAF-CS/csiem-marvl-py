@@ -44,6 +44,8 @@ class WQFluxProcessor(BaseProcessor):
                 'wq_nit_nit': {'multiplier': None},
                 'wq_nit_amm': {'multiplier': None},
             },
+            'trc': {'wq_trc_tr1': {'multiplier': None}},
+            'trc_dis': {'wq_trc_tr4': {'multiplier': None}}
         }
 
     def _read_file(self, file_path: str) -> pd.DataFrame:
@@ -173,6 +175,73 @@ class WQFluxProcessor(BaseProcessor):
         net_load = sum(loads)
         return net_load
 
+    def get_est_load(
+        self,
+        load_type: str,
+        nodestring_id_a: int,
+        nodestring_id_b: int,
+        resample_rule: str = 'W',
+    ):
+        load_b = self.get_load(load_type, nodestring_id_b, False, resample_rule)
+        trc_a = self.get_load('trc', nodestring_id_a, False, resample_rule)
+        trc_b = self.get_load('trc', nodestring_id_b, False, resample_rule)
+        trc_ratio = trc_a / trc_b
+        trc_ratio.clip(lower=0, inplace=True)
+        est_load_a = trc_ratio * load_b
+        est_load_a.clip(lower=0, inplace=True)
+        return est_load_a
+
+    def get_net_est_load(
+        self,
+        load_type: Union[str, List[str]],
+        nodestring_id_a: Union[int, List[int]],
+        nodestring_id_b: Union[int, List[int]],
+        resample_rule: str = 'W',
+    ) -> pd.Series:
+        load_type = (
+            [load_type] if not isinstance(load_type, list) else load_type
+        )
+        nodestring_id_a = (
+            [nodestring_id_a]
+            if not isinstance(nodestring_id_a, list)
+            else nodestring_id_a
+        )
+        nodestring_id_b = (
+            [nodestring_id_b]
+            if not isinstance(nodestring_id_b, list)
+            else nodestring_id_b
+        )
+        assert len(nodestring_id_a) == len(nodestring_id_b), (
+            'nodestring_id_a and nodestring_id_b must have equal lengths'
+        )
+        loads = []
+        for i in range(len(load_type)):
+            for j in range(len(nodestring_id_a)):
+                load = self.get_est_load(
+                    load_type[i], nodestring_id_a[j], nodestring_id_b[j], resample_rule
+                )
+            loads.append(load)
+        net_load = sum(loads)
+        return net_load
+
+    def get_tracer_ratio(
+        self,
+        load_type: str,
+        nodestring_id_a: int,
+        nodestring_id_b: int,
+        threshold: float = 0.05,
+        resample_rule: str = 'W'
+    ):
+        load_b = self.get_load(load_type, nodestring_id_b, False, resample_rule)
+        trc_a = self.get_load('trc', nodestring_id_a, False, resample_rule)
+        trc_b = self.get_load('trc', nodestring_id_b, False, resample_rule)
+        trc_ratio = trc_a / trc_b
+        trc_ratio.clip(lower=0, inplace=True)
+        est_load_a = trc_ratio * load_b
+        est_load_a.clip(lower=0, inplace=True)
+        trc_ratio[load_b / load_b.max() < threshold] = 0
+        return trc_ratio
+
     def get_discharge(self, nodestring_id: int, resample_rule: str = 'W') -> pd.Series:
         self._validate(nodestring_id)
         self.data.set_index('time', inplace=True)
@@ -186,7 +255,6 @@ class WQFluxProcessor(BaseProcessor):
 class NCProcessor(BaseProcessor):
     def __init__(self, file_path: str):
         super().__init__(file_path)
-        self.file_path = file_path
 
     def _read_file(self, file_path: str) -> xr.Dataset:
         data = xr.open_dataset(file_path)

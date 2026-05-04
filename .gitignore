@@ -1,5 +1,7 @@
 __pycache__/
 *.py[cod]
 dev-plots/*
+dev-data/*
+shared-datalake/*
 notes.md
 dev.py
